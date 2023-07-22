@@ -1,25 +1,34 @@
-const express = require('express')
-const logger = require('morgan')
-const cors = require('cors')
+const express = require('express');
+const logger = require('morgan');
+const cors = require('cors');
 
-const contactsRouter = require('./routes/api/contacts')
+const contactsRouter = require('./routes/api/contacts');
 
-const app = express()
+const app = express();
 
-const formatsLogger = app.get('env') === 'development' ? 'dev' : 'short'
+// Determine the log format based on the environment
+const formatsLogger = app.get('env') === 'development' ? 'dev' : 'short';
 
-app.use(logger(formatsLogger))
-app.use(cors())
-app.use(express.json())
+// Middleware for logging requests
+app.use(logger(formatsLogger));
 
-app.use('/api/contacts', contactsRouter)
+// Middleware to enable CORS
+app.use(cors());
 
+// Middleware to parse request bodies as JSON
+app.use(express.json());
+
+// Route handler for '/api/contacts' endpoint
+app.use('/api/contacts', contactsRouter);
+
+// Middleware for handling 404 Not Found errors
 app.use((req, res) => {
-  res.status(404).json({ message: 'Not found' })
-})
+  res.status(404).json({ message: 'Not found' });
+});
 
+// Error handling middleware for handling 500 Internal Server Error
 app.use((err, req, res, next) => {
-  res.status(500).json({ message: err.message })
-})
+  res.status(500).json({ message: err.message });
+});
 
-module.exports = app
+module.exports = app;
