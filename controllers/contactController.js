@@ -32,7 +32,7 @@ const createContact = async (req, res) => {
 const deleteContact = async (req, res) => {
   const { id } = req.params;
   await removeContact(id);
-  res.status(200).json({ message: 'Contact deleted successfully' });
+  res.status(200).json({ message: 'Contact deleted successfully 😀' });
 };
 
 // Controller to update a contact by id
