@@ -1,16 +1,16 @@
 const express = require('express');
 const logger = require('morgan');
 const cors = require('cors');
-
-const contactsRouter = require('./routes/api/contacts');
-
+const apiRoutes = require('./api');
 const app = express();
 
+
+
 // Determine the log format based on the environment
-const formatsLogger = app.get('env') === 'development' ? 'dev' : 'short';
+const logFormat = app.get('env') === 'development' ? 'dev' : 'short';
 
 // Middleware for logging requests
-app.use(logger(formatsLogger));
+app.use(logger(logFormat));
 
 // Middleware to enable CORS
 app.use(cors());
@@ -18,8 +18,8 @@ app.use(cors());
 // Middleware to parse request bodies as JSON
 app.use(express.json());
 
-// Route handler for '/api/contacts' endpoint
-app.use('/api/contacts', contactsRouter);
+// Use the entire apiRoutes for the '/api' prefix
+app.use('/api', apiRoutes);
 
 // Middleware for handling 404 Not Found errors
 app.use((req, res) => {
