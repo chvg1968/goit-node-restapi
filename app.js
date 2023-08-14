@@ -5,13 +5,17 @@ const cors = require('cors');
 const contactsRouter = require('./routes/api/contacts');
 const usersRouter = require('./routes/api/users');
 
+// const apiRoutes = require('./api');
+
 const app = express();
 
+
+
 // Determine the log format based on the environment
-const formatsLogger = app.get('env') === 'development' ? 'dev' : 'short';
+const logFormat = app.get('env') === 'development' ? 'dev' : 'short';
 
 // Middleware for logging requests
-app.use(logger(formatsLogger));
+app.use(logger(logFormat));
 
 // Middleware to enable CORS
 app.use(cors());
@@ -21,6 +25,11 @@ app.use(express.json());
 
 // Route handler for '/api/contacts' endpoint
 app.use('/api/contacts', contactsRouter);
+
+// Use the entire apiRoutes for the '/api' prefix
+// app.use('/api', apiRoutes);
+
+app.use()
 
 // Route handler for '/api/users' endpoint
 app.use('/api/users', usersRouter);
