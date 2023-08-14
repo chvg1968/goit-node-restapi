@@ -3,6 +3,7 @@ const logger = require('morgan');
 const cors = require('cors');
 
 const contactsRouter = require('./routes/api/contacts');
+const usersRouter = require('./routes/api/users');
 
 const app = express();
 
@@ -20,6 +21,9 @@ app.use(express.json());
 
 // Route handler for '/api/contacts' endpoint
 app.use('/api/contacts', contactsRouter);
+
+// Route handler for '/api/users' endpoint
+app.use('/api/users', usersRouter);
 
 // Middleware for handling 404 Not Found errors
 app.use((req, res) => {
