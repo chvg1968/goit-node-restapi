@@ -4,8 +4,8 @@
 // const contactFilePath = "models/contacts.json";
 
 // const readContacts = async () => {
-//   const contactList = await fs.readFile(contactFilePath);
-//   return JSON.parse(contactList.toString());
+//     const contactList = await fs.readFile(contactFilePath);
+//     return JSON.parse(contactList.toString());
 // };
 
 // const writeContacts = async (contacts) => {
