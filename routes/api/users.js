@@ -6,6 +6,7 @@ require('dotenv').config()
 const auth = require("../../middlewares/auth")
 const secret = process.env.SECRET
 const { createContact, getAllContacts } = require("../../service/contact")
+const Contact = require("../../schemas/contacts")
 
 const invalidatedTokens = new Set();
 
@@ -130,7 +131,22 @@ router.get("/users/current", auth, async (req, res, next) => {
 }
 });
 
+router.post("/contacts", validateToken, auth, async (req, res, next) => {
+  const { name, email, phone, favorite } = req.body;
+  const owner = req.user._id;
 
+  try {
+    const result = await createContact({ name, email, phone , favorite, owner });
+
+    res.status(201).json({
+      status: "created",
+      code: 201,
+      data: { cat: result },
+    });
+  } catch (error) {
+    next(error);
+  }
+});
 
 
 // pagination max 20 
@@ -155,32 +171,84 @@ router.get("/contacts", validateToken, auth, async (req, res, next) => {
 });
 
 // filtered contacts by favorite
-router.get("/contacts", validateToken, auth, async (req, res, next) => {
-  const owner = req.user._id;
-  const favorite = req.query.favorite;
+// router.get('/contacts', validateToken, auth, async (req, res) => {
+//   try {
+//     const { _id: owner } = req.user;
+//     const { page = 1, limit = 10 } = req.query; // Remove favorite from here
+//     const skip = (page - 1) * limit;
 
+//     const { favorite = true } = req.query; // Extract favorite with default value
+
+//     let filter = null;
+//     if (favorite === "false" || favorite === "true") {
+//       const isFavoriteTrue = favorite === "true";
+//       filter = { favorite: isFavoriteTrue };
+//     }
+
+//     const result = await Contact.find(
+//       { owner, ...filter },
+//       "-createdAt -updatedAt",
+//       {
+//         skip,
+//         limit,
+//       }
+//     ).populate("owner", "name email");
+
+//     res.json({ result, favorite }); // Include favorite in the response
+//   } catch (error) {
+//     res.status(500).json({ message: "Server error" });
+//   }
+// });
+
+router.get("/contacts", auth, async (req, res) => {
   try {
-    // Convert the 'favorite' query parameter to a boolean
+    const page = parseInt(req.query.page) || 1; // Requested page
+    const perPage = parseInt(req.query.perPage) || 10; // Number of items per page
     
+    // Calculate start and end indices for pagination
+    const startIndex = (page - 1) * perPage;
+    const endIndex = page * perPage;
 
-    const results = await getAllContacts({ 
-      owner, 
-      favorite,
-      page: req.query.page,
-      limit: req.query.limit
-     });
+    console.log(req.query);
 
-    res.json({
+    // Filter only for favorite contacts
+    const filter = { ...req.query, favorite: true };
+
+    const totalResults = await Contact.countDocuments(filter);
+    const result = await Contact.find(filter)
+      .skip(startIndex)
+      .limit(perPage);
+
+    // Build response object with pagination information
+    const response = {
       status: "success",
-      code: 200,
+      page,
+      perPage,
+      totalResults,
       data: {
-        contact: results,
-      },
-    });
-  } catch (error) {
-    next(error);
+        result
+      }
+    };
+
+    // Add link to previous page if applicable
+    if (startIndex > 0) {
+      response.prevPage = page - 1;
+    }
+
+    // Add link to next page if applicable
+    if (endIndex < totalResults) {
+      response.nextPage = page + 1;
+    }
+
+    res.status(200).json(response);
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ message: "Server error" });
   }
 });
+
+
+
 
 
 // patch subscription
@@ -218,7 +286,7 @@ router.patch("/users", validateToken, auth, async (req, res, next) => {
 });
 
 // Random contacts to test the pagination
-router.post("/contacts", validateToken, auth, async (req, res, next) => {
+router.post("/randomContacts", validateToken, auth, async (req, res, next) => {
   const { numberOfContacts, owner } = req.body;
 
   try {
