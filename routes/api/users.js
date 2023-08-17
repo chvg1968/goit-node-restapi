@@ -170,82 +170,25 @@ router.get("/contacts", validateToken, auth, async (req, res, next) => {
   }
 });
 
-// filtered contacts by favorite
-// router.get('/contacts', validateToken, auth, async (req, res) => {
-//   try {
-//     const { _id: owner } = req.user;
-//     const { page = 1, limit = 10 } = req.query; // Remove favorite from here
-//     const skip = (page - 1) * limit;
 
-//     const { favorite = true } = req.query; // Extract favorite with default value
 
-//     let filter = null;
-//     if (favorite === "false" || favorite === "true") {
-//       const isFavoriteTrue = favorite === "true";
-//       filter = { favorite: isFavoriteTrue };
-//     }
-
-//     const result = await Contact.find(
-//       { owner, ...filter },
-//       "-createdAt -updatedAt",
-//       {
-//         skip,
-//         limit,
-//       }
-//     ).populate("owner", "name email");
-
-//     res.json({ result, favorite }); // Include favorite in the response
-//   } catch (error) {
-//     res.status(500).json({ message: "Server error" });
-//   }
-// });
-
-router.get("/contacts", auth, async (req, res) => {
+const getAllContacts2 = async (req, res, next) => {
   try {
-    const page = parseInt(req.query.page) || 1; // Requested page
-    const perPage = parseInt(req.query.perPage) || 10; // Number of items per page
-    
-    // Calculate start and end indices for pagination
-    const startIndex = (page - 1) * perPage;
-    const endIndex = page * perPage;
+    const { _id: owner } = req.user;
+    const { favorite  } = req.query;
+    const result = await Contact.find({ owner, favorite });
 
-    console.log(req.query);
+    console.log("Request query:", req.query);
+    console.log("Result:", result);
 
-    // Filter only for favorite contacts
-    const filter = { ...req.query, favorite: true };
-
-    const totalResults = await Contact.countDocuments(filter);
-    const result = await Contact.find(filter)
-      .skip(startIndex)
-      .limit(perPage);
-
-    // Build response object with pagination information
-    const response = {
-      status: "success",
-      page,
-      perPage,
-      totalResults,
-      data: {
-        result
-      }
-    };
-
-    // Add link to previous page if applicable
-    if (startIndex > 0) {
-      response.prevPage = page - 1;
-    }
-
-    // Add link to next page if applicable
-    if (endIndex < totalResults) {
-      response.nextPage = page + 1;
-    }
-
-    res.status(200).json(response);
-  } catch (err) {
-    console.error(err);
+    res.json(result);
+  } catch (error) {
+    console.error(error);
     res.status(500).json({ message: "Server error" });
   }
-});
+};
+
+router.get("/contacts", auth, getAllContacts2);
 
 
 
