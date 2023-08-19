@@ -1,7 +1,9 @@
 const express = require("express");
 const { listContacts, getContactById, addContact, updateContact, removeContact } = require("../../models/contacts");
 const { v4: uuidv4 } = require("uuid"); // Import the v4 function from uuid to generate a unique ID
-
+const { validateToken } = require("../../middlewares/token");
+const  auth = require("../../middlewares/auth");
+const { createContact, getAllContacts } = require("../../service/contact")
 const router = express.Router();
 
 router.get("/", async (req, res, next) => {
@@ -88,7 +90,89 @@ router.put("/:contactId", async (req, res, next) => {
   }
 });
 
+router.post("/contacts", validateToken, auth, async (req, res, next) => {
+  const { name, email, phone, favorite } = req.body;
+  const owner = req.user._id;
+
+  try {
+    const result = await createContact({ name, email, phone , favorite, owner });
+
+    res.status(201).json({
+      status: "created",
+      code: 201,
+      data: { cat: result },
+    });
+  } catch (error) {
+    next(error);
+  }
+});
 
 
+// pagination max 20 
+router.get("/contacts", validateToken, auth, async (req, res, next) => {
+  const owner = req.user._id;
+  const page = parseInt(req.query.page) || 1; // default page is 1
+  const limit = parseInt(req.query.limit) || 20; // default limit is 20
+  const favorite = req.query.favorite === "true"; // Check if favorite filter is applied
+
+  try {
+    const results = await getAllContacts({ owner, page, limit, favorite });
+    console.log(results);
+
+    res.json({
+      status: "success",
+      code: 200,
+      data: {
+        contact: results,
+      },
+    });
+  } catch (error) {
+    next(error);
+  }
+});
+
+
+// patch subscription
+
+
+// Random contacts to test the pagination
+router.post("/randomContacts", validateToken, auth, async (req, res, next) => {
+  const { numberOfContacts, owner } = req.body;
+
+  try {
+    // Generate random contacts with the specified owner ID
+    const randomContacts = generateRandomContacts(numberOfContacts, owner);
+    
+
+    // Insert the generated contacts into the database
+    for (const contact of randomContacts) {
+      await createContact(contact);
+    }
+
+
+    res.status(201).json({
+      status: "created",
+      code: 201,
+      data: { message: `${numberOfContacts} random contacts generated.` },
+    });
+  } catch (error) {
+    next(error);
+  }
+});
+
+function generateRandomContacts(count, owner) {
+  const randomContacts = [];
+  for (let i = 1; i <= count; i++) {
+    const contact = {
+      name: `Contact ${i}`,
+      email: `contact${i}@example.com`,
+      phone: '123-456-7890',
+      favorite: Math.random() < 0.5, // Randomly set as true or false
+      owner: owner, // Set the owner to the specified owner ID
+    };
+    randomContacts.push(contact);
+  }
+  return randomContacts;
+}
 
 module.exports = router;
