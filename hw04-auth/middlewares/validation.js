@@ -1,6 +1,6 @@
 const Joi = require('joi');
-const app = require('../app');
-const service = require('../service');
+const app = require('../../app');
+const service = require('../../service');
 
 // Validation schema for POST and PUT requests
 const contactSchema = Joi.object({
