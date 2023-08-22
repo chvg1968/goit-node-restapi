@@ -1,11 +1,14 @@
-const express = require('express')
-const router = express.Router()
-const jwt = require('jsonwebtoken')
-const User = require('../../schemas/user')
-require('dotenv').config()
-const auth = require("../../middlewares/auth")
-const secret = process.env.SECRET
-const { validateToken, invalidatedTokens } = require("../../middlewares/token")
+const express = require('express');
+const router = express.Router();
+const jwt = require('jsonwebtoken');
+const User = require('../../schemas/user');
+require('dotenv').config();
+const auth = require("../../middlewares/auth");
+const secret = process.env.SECRET;
+const { validateToken, invalidatedTokens } = require("../../middlewares/token");
+const upload = require("../../middlewares/multerConfig");
+const gravatar = require('gravatar');
+
 
 
 router.post("/users/login", async (req, res, next) => {
@@ -37,32 +40,32 @@ router.post("/users/login", async (req, res, next) => {
   })
 })
 
-router.post("/users/registration", async (req, res, next) => {
-  const { username, email, password } = req.body
-  const user = await User.findOne({ email })
-  if (user) {
-    return res.status(409).json({
-      status: 'error',
-      code: 409,
-      message: 'Email is already in use',
-      data: 'Conflict',
-    })
-  }
-  try {
-    const newUser = new User({ username, email })
-    newUser.setPassword(password)
-    await newUser.save()
-    res.status(201).json({
-      status: 'success',
-      code: 201,
-      data: {
-        message: 'Registration successful',
-      },
-    })
-  } catch (error) {
-    next(error)
-  }
-})
+// router.post("/users/registration", async (req, res, next) => {
+//   const { username, email, password } = req.body
+//   const user = await User.findOne({ email })
+//   if (user) {
+//     return res.status(409).json({
+//       status: 'error',
+//       code: 409,
+//       message: 'Email is already in use',
+//       data: 'Conflict',
+//     })
+//   }
+//   try {
+//     const newUser = new User({ username, email })
+//     newUser.setPassword(password)
+//     await newUser.save()
+//     res.status(201).json({
+//       status: 'success',
+//       code: 201,
+//       data: {
+//         message: 'Registration successful',
+//       },
+//     })
+//   } catch (error) {
+//     next(error)
+//   }
+// })
 
 router.get("/users/list", auth, (req, res, next) => {
   const { username } = req.user
@@ -145,6 +148,47 @@ router.patch("/users", validateToken, auth, async (req, res, next) => {
   }
 });
 
+// Avatars
+
+router.post("/users/registration", upload.single('avatar'), async (req, res, next) => {
+  const { username, email, password } = req.body;
+  const user = await User.findOne({ email });
+  
+
+  if (user) {
+    return res.status(409).json({
+      status: 'error',
+      code: 409,
+      message: 'Email is already in use',
+      data: 'Conflict',
+    });
+  }
+
+  try {
+    let avatarURL = '';
+    if (req.file) {
+      // Si se proporciona un archivo, usa ese archivo como avatar
+      avatarURL = `/avatars/${req.file.filename}`;
+    } else {
+      // Si no se proporciona un archivo, usa Gravatar
+      avatarURL = gravatar.url(email, { s: '200', r: 'pg', d: 'identicon' });
+    }
+
+    const newUser = new User({ username, email, avatarURL });
+    newUser.setPassword(password);
+    await newUser.save();
+
+    res.status(201).json({
+      status: 'success',
+      code: 201,
+      data: {
+        message: 'Registration successful',
+      },
+    });
+  } catch (error) {
+    next(error);
+  }
+});
 
 
 

@@ -10,29 +10,17 @@ const usersRouter = require('./routes/api/users');
 const app = express();
 
 
-
-// Determine the log format based on the environment
 const logFormat = app.get('env') === 'development' ? 'dev' : 'short';
 
-// Middleware for logging requests
+// Middlewares
 app.use(logger(logFormat));
-
-// Middleware to enable CORS
 app.use(cors());
-
-// Middleware to parse request bodies as JSON
 app.use(express.json());
 
-// Route handler for '/api/contacts' endpoint
+// Routes
 app.use('/api/contacts', contactsRouter);
-
-// Use the entire apiRoutes for the '/api' prefix
-// app.use('/api', apiRoutes);
-
-
-
-// Route handler for '/api/users' endpoint
 app.use('/api/users', usersRouter);
+
 
 // Middleware for handling 404 Not Found errors
 app.use((req, res) => {
