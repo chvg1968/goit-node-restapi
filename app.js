@@ -19,7 +19,7 @@ app.use(express.json());
 
 // Routes
 app.use('/api/contacts', contactsRouter);
-app.use('/api/users', usersRouter);
+app.use('/api/', usersRouter);
 
 
 // Middleware for handling 404 Not Found errors

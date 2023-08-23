@@ -1,17 +1,26 @@
 const express = require('express');
 const router = express.Router();
 const jwt = require('jsonwebtoken');
+
+
+const authenticate = require('../../config/config_passport');
+
 const User = require('../../schemas/user');
 require('dotenv').config();
 const auth = require("../../middlewares/auth");
 const secret = process.env.SECRET;
 const { validateToken, invalidatedTokens } = require("../../middlewares/token");
-const upload = require("../../middlewares/multerConfig");
 const gravatar = require('gravatar');
+const jimp = require('jimp');
+const path = require('path');
+const fs = require('fs/promises'); 
 
 
+const tmpUpload = require('../../middlewares/multerTmp');
+const publicUpload = require('../../middlewares/multerPublic');
 
-router.post("/users/login", async (req, res, next) => {
+
+router.post("/login", async (req, res, next) => {
   const { email, password } = req.body
   const user = await User.findOne({ email })
   console.log(user)
@@ -67,7 +76,7 @@ router.post("/users/login", async (req, res, next) => {
 //   }
 // })
 
-router.get("/users/list", auth, (req, res, next) => {
+router.get("/list", auth, (req, res, next) => {
   const { username } = req.user
   res.json({
     status: 'success',
@@ -79,7 +88,7 @@ router.get("/users/list", auth, (req, res, next) => {
 })
 
 // Route to logout (using GET method as per the original requirement)
-router.get("/users/logout", validateToken, (req, res) => {
+router.get("/logout", validateToken, (req, res) => {
   const authHeader = req.headers.authorization;
   const token = authHeader && authHeader.split(" ")[1];
 
@@ -95,7 +104,7 @@ router.get("/users/logout", validateToken, (req, res) => {
 });
 
 // New route for getting the current user
-router.get("/users/current", auth, async (req, res, next) => {
+router.get("/current", auth, async (req, res, next) => {
   const { email } = req.user;
   
   try {
@@ -150,7 +159,7 @@ router.patch("/users", validateToken, auth, async (req, res, next) => {
 
 // Avatars
 
-router.post("/users/registration", upload.single('avatar'), async (req, res, next) => {
+router.post("/registration", publicUpload.single('avatarURL'), async (req, res, next) => {
   const { username, email, password } = req.body;
   const user = await User.findOne({ email });
   
@@ -190,6 +199,50 @@ router.post("/users/registration", upload.single('avatar'), async (req, res, nex
   }
 });
 
+router.patch('/avatars', authenticate, validateToken, tmpUpload.single('avatar'), async (req, res) => {
+  try {
+    // Check if a file was uploaded
+    if (!req.file) {
+      return res.status(400).json({ message: 'No avatar file uploaded' });
+    }
+
+    // Process the uploaded avatar
+    const imagePath = req.file.path;
+    const avatarImage = await jimp.read(imagePath);
+    await avatarImage.resize(250, 250);
+
+    // Generate a unique filename for the avatar
+    const avatarFilename = `${Date.now()}_${req.file.originalname}`;
+    
+    // Define the destination path for the avatar in the "public/avatars" folder
+    
+    const avatarPath = path.join('public', 'avatars', avatarFilename);
+
+    // Write the resized avatar image to the destination path
+    await avatarImage.writeAsync(avatarPath);
+
+    // Update the user's avatarURL field in the database
+    const userId = req.user._id; 
+    console.log(userId); // Assuming you have access to the user's ID from the token
+    const user = await User.findByIdAndUpdate(userId, { avatarURL: `/avatars/${avatarFilename}` }, { new: true });
+    
+    if (!user) {
+      return res.status(404).json({ message: 'User not found' });
+    }
+
+    // user.avatarURL = `/avatars/${avatarFilename}`;
+    // await user.save();
+
+     // Delete the temporary file
+     await fs.unlink(imagePath);
+
+    // Return the avatarURL in the response
+    res.status(200).json({ avatarURL: user.avatarURL });
+  } catch (error) {
+    console.error('Error:', error);
+    res.status(500).json({ message: 'Internal Server Error' });
+  }
+});
 
 
 module.exports = router;
