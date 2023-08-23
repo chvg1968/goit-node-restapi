@@ -1,63 +1,60 @@
-// const express = require('express')
-// const cors = require('cors')
-// const usersRouter = require('./routes/api/users');
-// const contactsRouter = require('./routes/api/contacts');
-// const mongoose = require('mongoose');
-// require('dotenv').config();
+const express = require('express')
+const cors = require('cors')
+const mongoose = require('mongoose');
+require('dotenv').config();
+require('./config/config_passport')
 
-// const app = express();
+const contactsRouter = require('./routes/api/contacts');
+const usersRouter = require('./routes/api/users');
 
-// // Connect to MongoDB
-// mongoose.connect(process.env.DB_HOST, {
-//   useNewUrlParser: true,
-//   useUnifiedTopology: true,
-// });
+const app = express();
 
-// // Middleware
-// app.use(express.json());
-// app.use(cors());
-// app.use(express.static('public'));
+// Connect to MongoDB
+mongoose.connect(process.env.DB_HOST, {
+  useNewUrlParser: true,
+  useUnifiedTopology: true,
+});
 
-// // Routes
-// app.use('/api/users', usersRouter);
-// app.use('/api/contacts', contactsRouter);
+// Middleware
+app.use(express.json());
+app.use(cors());
+app.use(express.static('public'));
 
-// // 404 Not Found
-// app.use((_, res, __) => {
-//   res.status(404).json({
-//     status: 'error',
-//     code: 404,
-//     message: `Use api on routes: 
-//     /api/users/registration - registration user {username, email, password}
-//     /api/users/login - login {email, password}
-//     /api/users/logout - token
-//     /api/users/list - get message if user is authenticated`,
-//     data: 'Not found',
-//   })
-// });
 
-// // Error handling
+// Routes
+app.use('/api/contacts', contactsRouter);
+app.use('/api/users', usersRouter);
 
-// app.use((err, _, res, __) => {
-//   console.log(err.stack)
-//   res.status(500).json({
-//     status: 'fail',
-//     code: 500,
-//     message: err.message,
-//     data: 'Internal Server Error',
-//   })
-// });
+// 404 Not Found
+app.use((_, res, __) => {
+  res.status(404).json({
+    status: 'error',
+    code: 404,
+    message: `Use api on routes: 
+    /api/users/registration - registration user {username, email, password}
+    /api/users/login - login {email, password}
+    /api/users/logout - token
+    /api/users/list - get message if user is authenticated`,
+    data: 'Not found',
+  })
+});
 
-// const PORT = process.env.PORT || 3000;
+// Error handling
 
-// const server = app.listen(PORT, function () {
-//   console.log(`Server running. Use our API on port: ${PORT}`)
-// });
+app.use((err, _, res, __) => {
+  console.log(err.stack)
+  res.status(500).json({
+    status: 'fail',
+    code: 500,
+    message: err.message,
+    data: 'Internal Server Error',
+  })
+});
 
-// module.exports = server; 
+const PORT = process.env.PORT || 3000;
 
-const app = require('./app')
+const server = app.listen(PORT, function () {
+  console.log(`Server running. Use our API on port: ${PORT}`)
+});
 
-app.listen(3000, () => {
-  console.log("Server running. Use our API on port: 3000")
-})
+module.exports = server; 
