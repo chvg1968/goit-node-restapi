@@ -1,4 +1,4 @@
-const Contact = require('./schemas/contact');
+const Contact = require('./schemas/contacts');
 const { ObjectId } = require('mongoose').Types;
 
 const getAllContacts = async () => {
