@@ -1,5 +1,4 @@
 const express = require("express");
-const { listContacts, getContactById, addContact, updateContact, removeContact } = require("../../models/contacts");
 const { v4: uuidv4 } = require("uuid"); // Import the v4 function from uuid to generate a unique ID
 const { validateToken } = require("../../middlewares/token");
 const  auth = require("../../middlewares/auth");
