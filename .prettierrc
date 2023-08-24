@@ -1,1 +1,9 @@
-{}
+{
+    "tabWidth": 2,            
+    "useTabs": false,         
+    "doubleQuote": true,       
+    "semi": true,              
+    "trailingComma": "all",    
+    "printWidth": 80          
+  }
+  

@@ -3,7 +3,6 @@ const router = express.Router();
 const jwt = require('jsonwebtoken');
 
 
-const authenticate = require('../../config/config_passport');
 
 const User = require('../../schemas/user');
 require('dotenv').config();
@@ -199,7 +198,7 @@ router.post("/registration", publicUpload.single('avatarURL'), async (req, res, 
   }
 });
 
-router.patch('/avatars', authenticate, validateToken, tmpUpload.single('avatar'), async (req, res) => {
+router.patch('/avatars', auth, validateToken, tmpUpload.single('avatar'), async (req, res) => {
   try {
     // Check if a file was uploaded
     if (!req.file) {
