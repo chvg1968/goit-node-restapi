@@ -57,7 +57,7 @@ const verifyUser = async (req, res) => {
      
 
     if (!user) {
-      return res.status(404).send('Token de verificación no válido');
+      return res.status(404).send('Verification token is not valid');
     }
 
     await User.updateOne(
@@ -66,10 +66,10 @@ const verifyUser = async (req, res) => {
     );
 
     // Send response to client
-    res.send('¡Suscripción confirmada!');
+    res.send('¡Confirmed Subscription!');
   } catch (error) {
     console.error(error);
-    res.status(500).send('Error en la confirmación de suscripción');
+    res.status(500).send('Subscription error');
   }
 };
 
