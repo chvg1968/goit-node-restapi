@@ -2,9 +2,9 @@ const express = require('express')
 const cors = require('cors')
 const mongoose = require('mongoose');
 require('dotenv').config();
-require('./config/config_passport')
 
-const contactsRouter = require('./routes/api/contacts');
+
+
 const usersRouter = require('./routes/api/users');
 
 const app = express();
@@ -22,7 +22,7 @@ app.use(express.static('public'));
 
 
 // Routes
-app.use('/api/contacts', contactsRouter);
+
 app.use('/api/users', usersRouter);
 
 // 404 Not Found

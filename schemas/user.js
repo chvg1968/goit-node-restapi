@@ -12,7 +12,7 @@ const userSchema = new Schema({
   },
   password: {
     type: String,
-    required: [true, "Password required"]
+    required: [true, 'Password is required'],
   },
   subscription: {
     type: String,
@@ -22,7 +22,15 @@ const userSchema = new Schema({
   token: {
     type: String,
     default: null,
-  }
+  },
+  verify:{
+    type: Boolean,
+    default: false,
+  },
+  verificationToken: {
+    type: String,
+    required:[true, "verify token is required"],
+  },
 });
 
 userSchema.methods.setPassword = function(password) {
@@ -33,6 +41,18 @@ userSchema.methods.validPassword = function(password) {
   return bCrypt.compareSync(password, this.password);
 };
 
+
 const User = mongoose.model("user", userSchema);
 
 module.exports = User;
+
+
+
+
+
+
+
+
+
+
+
